@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Link, useNavigate } from 'react-router-dom'
@@ -10,6 +10,9 @@ export default function Dashboard(){
   const [desc, setDesc] = useState('')
   const [loading, setLoading] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
+  const [editingId, setEditingId] = useState(null)
+  const [editName, setEditName] = useState('')
+  const [editDesc, setEditDesc] = useState('')
   const navigate = useNavigate()
 
   useEffect(()=>{ fetchRepos() }, [])
@@ -38,22 +41,61 @@ export default function Dashboard(){
             {repos.map(r=> (
               <motion.div key={r._id} whileHover={{ scale: 1.03 }} className="card flex items-start justify-between">
                 <div className="pr-4 flex-1">
-                  <h4 className="repo-title">{r.name}</h4>
+                  <AnimatePresence>
+                    {editingId === r._id ? (
+                      // animated compact inline edit: responsive (wrap on small screens)
+                      <motion.div
+                        key={r._id + '-edit'}
+                        initial={{ opacity: 0, y: -6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -6 }}
+                        className="mb-2"
+                      >
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                          <input
+                            className="flex-1 px-2 py-1 rounded border border-slate-200 bg-white text-sm shadow-sm"
+                            value={editName}
+                            onChange={e=>setEditName(e.target.value)}
+                          />
+                          <input
+                            className="sm:w-44 w-full px-2 py-1 rounded border border-slate-200 bg-slate-50 text-sm"
+                            value={editDesc}
+                            onChange={e=>setEditDesc(e.target.value)}
+                            placeholder="Description"
+                          />
+                        </div>
+                      </motion.div>
+                    ) : (
+                    <h4 className="repo-title">{r.name}</h4>
+                    )}
+                  </AnimatePresence>
                   <p className="repo-desc">{r.description}</p>
                   <Link to={`/repo/${r._id}`} className="text-sm text-primary mt-2 inline-block">Open</Link>
                 </div>
                 <div className="flex flex-col items-end gap-2">
-                  <div className="flex gap-2">
-                    <button onClick={async ()=>{
-                      const newName = prompt('New repository name', r.name)
-                      if (!newName || newName.trim()===r.name) return
-                      try{ await updateRepo(r._id, { name: newName }); toast.success('Renamed'); fetchRepos() }catch(err){ toast.error(err.response?.data?.message || 'Rename failed') }
-                    }} className="btn btn-ghost text-sm">Edit</button>
-                    <button onClick={async ()=>{
-                      if (!confirm('Delete repository? This cannot be undone.')) return
-                      try{ await deleteRepo(r._id); toast.success('Deleted'); fetchRepos() }catch(err){ toast.error(err.response?.data?.message || 'Delete failed') }
-                    }} className="btn btn-ghost text-sm text-rose-600">Delete</button>
-                  </div>
+                  <AnimatePresence>
+                    <motion.div key={editingId===r._id ? 'actions-edit' : 'actions'} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex gap-2 items-center">
+                      {editingId === r._id ? (
+                        <>
+                          <button onClick={async ()=>{
+                          const newName = editName?.trim()
+                          const newDesc = editDesc?.trim()
+                          if ((!newName || newName===r.name) && (newDesc===r.description || newDesc==='')) { setEditingId(null); setEditName(''); setEditDesc(''); return }
+                          try{ await updateRepo(r._id, { name: newName, description: newDesc }); toast.success('Updated'); fetchRepos(); setEditingId(null); setEditName(''); setEditDesc('') }catch(err){ toast.error(err.response?.data?.message || 'Update failed') }
+                          }} className="btn btn-ghost px-2 py-1 text-sm">Save</button>
+                          <button onClick={()=>{ setEditingId(null); setEditName(''); setEditDesc('') }} className="btn btn-ghost px-2 py-1 text-sm">Cancel</button>
+                        </>
+                      ) : (
+                        <>
+                          <button onClick={()=>{ setEditingId(r._id); setEditName(r.name); setEditDesc(r.description || '') }} className="btn btn-ghost px-2 py-1 text-sm">Edit</button>
+                          <button onClick={async ()=>{
+                          if (!confirm('Delete repository? This cannot be undone.')) return
+                          try{ await deleteRepo(r._id); toast.success('Deleted'); fetchRepos() }catch(err){ toast.error(err.response?.data?.message || 'Delete failed') }
+                          }} className="btn btn-ghost px-2 py-1 text-sm text-rose-600">Delete</button>
+                        </>
+                      )}
+                    </motion.div>
+                  </AnimatePresence>
                 </div>
               </motion.div>
             ))}
