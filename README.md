@@ -197,7 +197,3 @@ If you want durable storage, switch uploads to S3. High-level steps:
 - Add S3 helper and migration script
 - Create Dockerfile and deployment guide for a VPS
 - Create GitHub Actions workflow for CI/CD
-
----
-
-Generated: October 8, 2025
