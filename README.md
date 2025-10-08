@@ -1,36 +1,3 @@
-# File Versioning App — Quick Local Guide
-
-A concise README focused on running the project locally. Push to GitHub when ready.
-
-Requirements
-- Node.js 18+ and npm
-- MongoDB (local or Atlas)
-
-Install
-
-```cmd
-cd d:\mern_assignment\file-versioning-app\server
-npm install
-cd ..\client
-npm install
-```
-
-Run (two terminals)
-
-Backend:
-
-```cmd
-cd d:\mern_assignment\file-versioning-app\server
-npm run dev
-```
-
-Frontend:
-
-```cmd
-cd d:\mern_assignment\file-versioning-app\client
-npm run dev
-```
-
 # File Versioning App
 
 A production-minded MERN sample application that demonstrates a File Versioning & Access Control system. It includes:
@@ -230,7 +197,3 @@ If you want durable storage, switch uploads to S3. High-level steps:
 - Add S3 helper and migration script
 - Create Dockerfile and deployment guide for a VPS
 - Create GitHub Actions workflow for CI/CD
-
----
-
-Generated: October 8, 2025
